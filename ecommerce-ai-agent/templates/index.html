@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🔍 Product Search & Price Comparison</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('index') }}">
+                    <div class="mb-3">
+                        <label for="query" class="form-label">What product are you looking for?</label>
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg" 
+                            id="query" 
+                            name="query" 
+                            value="{{ query }}"
+                            placeholder="e.g., iPhone 15 Pro, Sony WH-1000XM5, LG OLED TV"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select platforms to search:</label>
+                        <div class="row">
+                            {% for platform in available_platforms %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="checkbox" 
+                                        name="platforms" 
+                                        value="{{ platform }}"
+                                        id="platform_{{ loop.index }}"
+                                        {% if platform in selected_platforms %}checked{% endif %}
+                                    >
+                                    <label class="form-check-label" for="platform_{{ loop.index }}">
+                                        {{ platform }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        🔎 Search & Compare Prices
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if response_json %}
+        <div class="mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">✅ Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if response_json.get('platforms') %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Platform</th>
+                                    <th>Price</th>
+                                    <th>Rating</th>
+                                    <th>Delivery</th>
+                                    <th>Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for platform_block in response_json.platforms %}
+                                    {% for result in platform_block.results %}
+                                    <tr>
+                                        <td><strong>{{ platform_block.platform }}</strong></td>
+                                        <td><span class="badge bg-success">{{ result.price }}</span></td>
+                                        <td>{{ result.rating or 'N/A' }}</td>
+                                        <td>{{ result.delivery or 'N/A' }}</td>
+                                        <td>
+                                            <a href="{{ result.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                Visit →
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% if response_json.get('summary') %}
+                    <div class="alert alert-info mt-3">
+                        <strong>Summary:</strong> {{ response_json.summary }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
